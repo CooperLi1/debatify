@@ -1,6 +1,4 @@
 'use client'
-
-import { ClerkProvider } from '@clerk/nextjs'
 import { mont } from '@/app/ui/fonts'
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
@@ -62,10 +60,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <meta name="description" content="Search for debate cut cards!" />
           </Head>
       <body className={`${mont.className } antialiased bg-gray-50 dark:bg-gray-900`}>
-        <ClerkProvider>
           {children}
           <DarkModeToggle setDarkMode={setDarkMode} />
-        </ClerkProvider>
       </body>
     </html>
   )
