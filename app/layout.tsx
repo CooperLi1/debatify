@@ -1,5 +1,5 @@
 'use client'
-import { mont } from '@/app/ui/fonts'
+import { manrope } from '@/app/ui/fonts'
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
@@ -59,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <title>{title}</title>
             <meta name="description" content="Search for debate cut cards!" />
           </Head>
-      <body className={`${mont.className } antialiased bg-gray-50 dark:bg-gray-900`}>
+      <body className={`${manrope.className } antialiased bg-gray-50 dark:bg-gray-900`}>
           {children}
           <DarkModeToggle setDarkMode={setDarkMode} />
       </body>
