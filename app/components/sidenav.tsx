@@ -32,7 +32,7 @@ function LogoutButton({ expanded }: { expanded: boolean }) {
       {userData ? (
         <li>
           <button
-            className="w-full flex cursor-pointer items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            className="w-full flex cursor-pointer items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group"
             onClick={logout}
           >
             <svg
@@ -51,7 +51,7 @@ function LogoutButton({ expanded }: { expanded: boolean }) {
         <li>
           <Link
             href="/account/login"
-            className="w-full flex cursor-pointer items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            className="w-full flex cursor-pointer items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 group"
           >
             <svg
               className="shrink-0 w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -82,7 +82,7 @@ function Search({ expanded }: { expanded: boolean }) {
         onClick={() => router.push("/main")} // Redirect on click
         className={`group w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
           ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
-                     : "text-gray-900 dark:text-white grouphover:bg-gray-100 dark:grouphover:bg-gray-700"}`}
+                     : "text-gray-900 dark:text-white grouphover:bg-gray-200 dark:grouphover:bg-gray-700"}`}
       >
         <svg
           className={`shrink-0 w-6 h-6 transition duration-75 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"}`}
@@ -117,7 +117,7 @@ function Bookmarks({ expanded }: { expanded: boolean }) {
         onClick={() => router.push("/main/bookmarks")} // Redirect on click
         className={`flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
           ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
-                     : "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                     : "text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"}`}
       >
         <BookmarkIcon
           className={`shrink-0 w-6 h-6 transition duration-75 
@@ -176,7 +176,7 @@ const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`fixed top-0 left-0 h-full bg-gray-800 text-white border-r border-gray-700
+      className={`fixed top-0 left-0 h-full bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 text-white
         transition-all duration-300 ease-in-out relative
         ${isHovered ? 'w-64' : 'w-10'}
       `}
@@ -248,7 +248,7 @@ function SidebarItem({
 }) {
   return (
     <li>
-      <a className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-all gap-x-3">
+      <a className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all gap-x-3">
         {icon}
         <span
           className={`transition-opacity duration-200 ${

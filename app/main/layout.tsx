@@ -16,7 +16,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <ClerkProvider>
       <div className="min-h-screen transition-all text-gray-900 dark:text-white">
         <main className="flex min-h-screen">
           {/* Sidebar */}
@@ -28,7 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Main Content */}
           <div
-            className={`flex-1 flex flex-col p-12 transition-all duration-300 ${
+            className={`flex-1 flex flex-col p-4 transition-all duration-300 ${
               isSidebarOpen ? 'hidden md:flex' : 'flex'
             }`}
           >
@@ -50,6 +49,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
 
       </div>
-    </ClerkProvider>
   );
 }
