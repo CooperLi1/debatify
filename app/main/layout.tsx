@@ -1,7 +1,7 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
-import { SideNav } from "../components/sidenav";
+import SideNav from "../components/sidenav";
 import { useState, useEffect } from "react";
 import {motion, AnimatePresence} from 'framer-motion';
 import { usePathname } from 'next/navigation'
@@ -17,17 +17,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex min-h-screen">
           {/* Sidebar */}
           <div
-            className={`transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-0"} dark:bg-gray-800 dark:text-white`}
+            className={`transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-10"} dark:bg-gray-800 dark:text-white`}
           >
             <SideNav
-              isOpen={isSidebarOpen}
-              toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
+              // isOpen={isSidebarOpen}
+              // toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
             />
           </div>
 
           {/* Main Content */}
           <div
-            className={`flex-1 flex flex-col p-9 transition-all duration-300 ${
+            className={`flex-1 flex flex-col p-12 transition-all duration-300 ${
               isSidebarOpen ? 'hidden md:flex' : 'flex'
             }`}
           >
