@@ -11,6 +11,9 @@ interface SideNavProps {
   isOpen: boolean;
   toggleSidebar: () => void;
 }
+interface ChildComponentProps {
+  sendDataToParent: (data: boolean) => void;
+}
 
 function LogoutButton({ expanded }: { expanded: boolean }) {
   const [userData, setUserData] = useState<any>(null);
@@ -74,12 +77,12 @@ function Search({ expanded }: { expanded: boolean }) {
   const isActive = pathname === "/main";
 
   return (
-    <li>
-      <a
+    <li className="w-full">
+      <button
         onClick={() => router.push("/main")} // Redirect on click
-        className={`flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
+        className={`group w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
           ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
-                     : "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                     : "text-gray-900 dark:text-white grouphover:bg-gray-100 dark:grouphover:bg-gray-700"}`}
       >
         <svg
           className={`shrink-0 w-6 h-6 transition duration-75 ${isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"}`}
@@ -97,7 +100,7 @@ function Search({ expanded }: { expanded: boolean }) {
           />
         </svg>
         {expanded && <span className="ms-3">Search</span>}
-      </a>
+      </button>
     </li>
   );
 };
@@ -141,7 +144,7 @@ async function getUser() {
   return data;
 }
 
-export default function SideNav() {
+const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
   const [userData, setUserData] = useState<any>(null);
   const [isHovered, setIsHovered] = useState(false); // Tracks both initial hover and expanded state
 
@@ -159,21 +162,26 @@ export default function SideNav() {
 
   const mousePosition = useMousePosition();
 
-  useEffect(() => {
-    if (mousePosition.x > 250) {
-      setIsHovered(false);
-    }
-  }, [mousePosition.x]);
+  // useEffect(() => {
+  //   if (mousePosition.x > 250) {
+  //     setIsHovered(false);
+  //   }
+  // }, [mousePosition.x]);
   
+  useEffect(() => {
+    sendDataToParent(isHovered);
+  }, [mousePosition.x]);
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={`fixed top-0 left-0 h-full bg-gray-800 text-white border-r border-gray-700
-        transition-[width] duration-300 ease-in-out overflow-hidden
+        transition-all duration-300 ease-in-out relative
         ${isHovered ? 'w-64' : 'w-10'}
       `}
     >
-    <ul className="space-y-2 font-medium pt-8">
+    <ul className="space-y-2 font-medium pt-8 w-full">
         <SidebarItem
           icon={
             <svg
@@ -226,6 +234,8 @@ export default function SideNav() {
     
   );
 }
+
+export default SideNav;
 
 function SidebarItem({
   icon,

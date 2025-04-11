@@ -11,6 +11,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setSidebarOpen] = useState(false); // Sidebar state
   const pathname = usePathname(); 
 
+  const handleDataFromChild = (data: boolean) => {
+    setSidebarOpen(data);
+  };
+
   return (
     <ClerkProvider>
       <div className="min-h-screen transition-all text-gray-900 dark:text-white">
@@ -19,11 +23,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div
             className={`transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-10"} dark:bg-gray-800 dark:text-white`}
           >
-            <SideNav
-              // isOpen={isSidebarOpen}
-              // toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
-            />
-          </div>
+      <SideNav sendDataToParent={handleDataFromChild} />
+      </div>
 
           {/* Main Content */}
           <div
