@@ -62,7 +62,7 @@ export default function Search() {
     //Search Function
     async function searchData(str: string){
       setLoading(true);
-      const response = await fetch("https://18.206.223.109/search?q=" + str, {
+      const response = await fetch("https://54.152.114.111/search?q=" + str, {
         method: "GET",
       });
       const data = await response.json();
@@ -160,10 +160,7 @@ export default function Search() {
 
           <button
             onClick={() => {
-              const type = "text/html";
-              const blob = new Blob([modifiedHTML], { type });
-              const data = [new ClipboardItem({ [type]: blob })];
-              navigator.clipboard.write(data);
+              saveBookmark(modifiedHTML);
             }}
             className="absolute top-0 right-10 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
             title="Bookmark"
@@ -172,7 +169,7 @@ export default function Search() {
           </button>
 
           <div
-            className={`bg-${highlightColor} text-[12pt] w-full `}
+            className={`bg-${highlightColor} text-[12pt] w-full p-7 `}
             dangerouslySetInnerHTML={{ __html: modifiedHTML }}
           />
         </div>

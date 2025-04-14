@@ -1,47 +1,73 @@
-'use client'
-import { useState, useEffect, useRef } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { FiCopy, FiX } from 'react-icons/fi';
+import { createClient } from '@/utils/supabase/client';
+import type { Database } from '@/types_db';
+import Fuse from 'fuse.js';
 
 export default function Saved() {
-  // Fonts
+  const supabase = createClient();
+
   const fonts = [
-    { name: "Calibri", className: "calibri" },
-    { name: "Arial", className: "arial" },
-    { name: "Times New Roman", className: "times" },
+    { name: 'Calibri', className: 'calibri' },
+    { name: 'Arial', className: 'arial' },
+    { name: 'Times New Roman', className: 'times' }
   ];
-  const [font, setFont] = useState("calibri");
-
-  // Highlight Color
-  const [saved, setSaved] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('saved');
-      if (stored) {
-        console.log(JSON.parse(stored));
-        setSaved(JSON.parse(stored));
-      } else {
-        setSaved([]);
-      }
-    }
-  }, []);
-
-  const isInitialRender = useRef(true);
+  const [font, setFont] = useState('calibri');
+  const [saved, setSaved] = useState<{ id: string; content: string }[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fuse, setFuse] = useState<Fuse<{ id: string; content: string }>>();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (isInitialRender.current) {
-        isInitialRender.current = false;
+    const fetchBookmarks = async () => {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('id, content')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bookmarks:', error.message);
         return;
       }
-      localStorage.setItem('saved', JSON.stringify(saved));
+
+      setSaved(data);
+    };
+
+    fetchBookmarks();
+  }, [supabase]);
+
+  useEffect(() => {
+    if (saved.length > 0) {
+      const fuseInstance = new Fuse(saved, {
+        keys: ['content'],
+        threshold: 0.3, // Adjust this for more or less fuzzy matching
+      });
+      setFuse(fuseInstance);
     }
   }, [saved]);
 
-  // Copy to clipboard
-  async function copy(str: string) {
-    await navigator.clipboard.writeText(str);
-    alert("Copied!");
-  }
+  const deleteBookmark = async (id: string) => {
+    const { error } = await supabase.from('bookmarks').delete().eq('id', id);
+    if (error) {
+      console.error('Failed to delete:', error.message);
+      return;
+    }
+
+    setSaved((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Search with Fuse.js
+  const filteredBookmarks = searchQuery
+    ? fuse?.search(searchQuery).map(({ item }) => item) || []
+    : saved;
 
   return (
     <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 defaulttext relative px-5 py-8">
@@ -49,11 +75,17 @@ export default function Saved() {
         Saved Evidence
       </h1>
 
-      {/* Divider */}
       <div className="self-center mb-6 w-1/5 h-1 bg-gray-800 dark:bg-white rounded-full opacity-80" />
 
-      {/* Font Dropdown */}
-      <div className="flex justify-end items-center gap-4 mb-8">
+      <div className="w-full flex items-center gap-4 mb-8 justify-center">
+        <input
+          type="text"
+          className="w-[40%] p-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          placeholder="Search bookmarks..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
         <select
           className="simpleform w-36"
           onChange={(e) => setFont(e.target.value)}
@@ -67,41 +99,47 @@ export default function Saved() {
         </select>
       </div>
 
-      {/* Content */}
       <div className={`flex flex-col items-center ${font}`}>
-        {saved && saved.length > 0 ? (
+        {filteredBookmarks.length > 0 ? (
           <ul className="w-full max-w-screen-md space-y-4">
-            {saved.map((htmlString, index) => (
+            {filteredBookmarks.map(({ id, content }) => (
               <li
-                key={index}
-                className="relative bg-white dark:bg-gray-800 shadow-md rounded-md p-4 transition-transform transform hover:scale-105"
+                key={id}
+                className="relative bg-white dark:bg-gray-100 shadow-md rounded-md p-4 transition-transform transform"
               >
                 <div
-                  className="text-[12pt] text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm p-2"
-                  dangerouslySetInnerHTML={{ __html: htmlString }}
+                  className="text-[12pt] text-black rounded-sm p-7"
+                  dangerouslySetInnerHTML={{ __html: content }}
                 />
+
+                {/* Delete Button: X over bookmark */}
                 <button
-                  onClick={() =>
-                    setSaved((prevSaved) =>
-                      prevSaved.filter((item) => item !== htmlString)
-                    )
-                  }
-                  className="absolute top-2 right-2 p-2 rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none"
+                  className="absolute top-4 right-2 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
+                  title="Delete bookmark"
+                  onClick={() => deleteBookmark(id)}
                 >
-                  <img src={"bookmark_fill.svg"} alt="Delete" />
+                  <FiX size={20} />
                 </button>
+
+                {/* Copy button */}
                 <button
-                  className="absolute top-2 right-10 p-2 rounded-full bg-green-600 text-white hover:bg-green-700 focus:outline-none"
-                  onClick={() => copy(htmlString)}
+                  onClick={() => {
+                    const type = 'text/html';
+                    const blob = new Blob([content], { type });
+                    const data = [new ClipboardItem({ [type]: blob })];
+                    navigator.clipboard.write(data);
+                  }}
+                  className="absolute top-4 right-8 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
+                  title="Copy to clipboard"
                 >
-                  <img src="copy.svg" alt="Copy" />
+                  <FiCopy size={20} />
                 </button>
               </li>
             ))}
           </ul>
         ) : (
           <p className="font-semibold text-xl text-center text-gray-600 dark:text-gray-300">
-            Nothing saved
+            No bookmarks found
           </p>
         )}
       </div>
