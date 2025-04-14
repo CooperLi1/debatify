@@ -10,14 +10,15 @@ export default function Saved() {
   const supabase = createClient();
 
   const fonts = [
-    { name: 'Calibri', className: 'calibri' },
-    { name: 'Arial', className: 'arial' },
-    { name: 'Times New Roman', className: 'times' }
+    { name: "Calibri", className: "calibri" },
+    { name: "Arial", className: "arial" },
+    { name: "Times New Roman", className: "times" },
+    { name: "Comic Sans", className: "comic" }
   ];
   const [font, setFont] = useState('calibri');
   const [saved, setSaved] = useState<{ id: string; content: string }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [fuse, setFuse] = useState<Fuse<{ id: string; content: string }>>();
+  const [fuse, setFuse] = useState<Fuse<{ id: string; content: string }>>();  
 
   useEffect(() => {
     const fetchBookmarks = async () => {
@@ -70,7 +71,7 @@ export default function Saved() {
     : saved;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 defaulttext relative px-5 py-8">
+    <div className="flex flex-col h-screen defaulttext relative px-5 py-8">
       <h1 className="text-center text-3xl font-bold text-gray-900 dark:text-white mb-6">
         Saved Evidence
       </h1>
@@ -80,7 +81,7 @@ export default function Saved() {
       <div className="w-full flex items-center gap-4 mb-8 justify-center">
         <input
           type="text"
-          className="w-[40%] p-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          className="w-[40%] simpleform"
           placeholder="Search bookmarks..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
