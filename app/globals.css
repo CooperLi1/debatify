@@ -48,6 +48,33 @@
   }
 }
 
+.reset-injected-html * {
+  margin: 0 !important;
+}
+
+@font-face {
+  font-family: 'Calibri';
+  src: url('/calibri.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.calibri {
+  font-family: 'Calibri', sans-serif;
+}
+
+.arial {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.times {
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.comic {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
 @layer base {
   /* Input field */
   .inputfield {

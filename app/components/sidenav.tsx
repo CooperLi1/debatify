@@ -70,6 +70,58 @@ function LogoutButton({ expanded }: { expanded: boolean }) {
   );
 }
 
+
+function User({ expanded }: { expanded: boolean }) {
+  const pathname = usePathname(); // Get current route
+  const router = useRouter(); // Handle navigation
+
+  const isActive = pathname === "/main/account";
+
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const data = await getUser();
+      setUserData(data);
+    }
+
+    fetchUser();
+  }, []);
+
+  const getEmailPrefix = (email: string) => email.split('@')[0];
+  const truncateEmail = (email: string, maxLength: number) => {
+    // Check if the email length exceeds maxLength minus the length of ellipses
+    if (email.length > maxLength - 3) {
+      return email.substring(0, maxLength - 3) + '...'; // Truncate and add ellipses
+    }
+    return email; // If email is short enough, return it as is
+  };
+  
+  const prefix = userData
+    ? truncateEmail(getEmailPrefix(userData.user.email), 18) // Set max length to 20 characters
+    : 'Guest';
+  
+  return (
+    <li className="w-full">
+      <button
+        onClick={() => router.push("/main/account")} // Redirect on click
+        className={`group w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
+          ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
+                     : "text-gray-900 dark:text-white grouphover:bg-gray-200 dark:grouphover:bg-gray-700"}`}
+      >
+        <svg
+          className="shrink-0 w-6 h-6 text-gray-500 dark:text-gray-400"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 12c-4.97 0-9 2.014-9 4.5V20h18v-1.5c0-2.486-4.03-4.5-9-4.5z" />
+        </svg>
+        {expanded && <span className="ms-3">{prefix}</span>}
+      </button>
+    </li>
+  );
+};
+
 function Search({ expanded }: { expanded: boolean }) {
   const pathname = usePathname(); // Get current route
   const router = useRouter(); // Handle navigation
@@ -100,6 +152,33 @@ function Search({ expanded }: { expanded: boolean }) {
           />
         </svg>
         {expanded && <span className="ms-3">Search</span>}
+      </button>
+    </li>
+  );
+};
+
+function Subscriptions({ expanded }: { expanded: boolean }) {
+  const pathname = usePathname(); // Get current route
+  const router = useRouter(); // Handle navigation
+
+  const isActive = pathname === "/main/pricing";
+
+  return (
+    <li className="w-full">
+      <button
+        onClick={() => router.push("/main/pricing")} // Redirect on click
+        className={`group w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
+          ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
+                     : "text-gray-900 dark:text-white grouphover:bg-gray-200 dark:grouphover:bg-gray-700"}`}
+      >
+            <svg
+              className="shrink-0 w-6 h-6 text-gray-500 dark:text-gray-400"
+              viewBox="0 0 17 20"
+              fill="currentColor"
+            >
+                  <path d="M7.958 19.393a7.7 7.7 0 0 1-6.715-3.439c-2.868-4.832 0-9.376.944-10.654l.091-.122a3.286 3.286 0 0 0 .765-3.288A1 1 0 0 1 4.6.8c.133.1.313.212.525.347A10.451 10.451 0 0 1 10.6 9.3c.5-1.06.772-2.213.8-3.385a1 1 0 0 1 1.592-.758c1.636 1.205 4.638 6.081 2.019 10.441a8.177 8.177 0 0 1-7.053 3.795Z"/>
+                  </svg>
+        {expanded && <span className="ms-3">Paid&nbsp;Plans</span>}
       </button>
     </li>
   );
@@ -145,20 +224,7 @@ async function getUser() {
 }
 
 const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
-  const [userData, setUserData] = useState<any>(null);
   const [isHovered, setIsHovered] = useState(false); // Tracks both initial hover and expanded state
-
-  useEffect(() => {
-    async function fetchUser() {
-      const data = await getUser();
-      setUserData(data);
-    }
-
-    fetchUser();
-  }, []);
-
-  const getEmailPrefix = (email: string) => email.split('@')[0];
-  const prefix = userData ? getEmailPrefix(userData.user.email) : 'Guest';
 
   const mousePosition = useMousePosition();
 
@@ -182,40 +248,14 @@ const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
       `}
     >
     <ul className="space-y-2 font-medium pt-8 w-full">
-        <SidebarItem
-          icon={
-            <svg
-              className="shrink-0 w-6 h-6 text-gray-500 dark:text-gray-400"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 12c-4.97 0-9 2.014-9 4.5V20h18v-1.5c0-2.486-4.03-4.5-9-4.5z" />
-            </svg>
-          }
-          label={prefix}
-          expanded={isHovered}
-        />
-
+        <User expanded={isHovered}/>
         <Search expanded={isHovered} />
         <Bookmarks expanded={isHovered} />
         <LogoutButton expanded={isHovered} />
-
       </ul>
 
       <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
-        <SidebarItem
-          icon={
-            <svg
-              className="shrink-0 w-6 h-6 text-gray-500 dark:text-gray-400"
-              viewBox="0 0 17 20"
-              fill="currentColor"
-            >
-                  <path d="M7.958 19.393a7.7 7.7 0 0 1-6.715-3.439c-2.868-4.832 0-9.376.944-10.654l.091-.122a3.286 3.286 0 0 0 .765-3.288A1 1 0 0 1 4.6.8c.133.1.313.212.525.347A10.451 10.451 0 0 1 10.6 9.3c.5-1.06.772-2.213.8-3.385a1 1 0 0 1 1.592-.758c1.636 1.205 4.638 6.081 2.019 10.441a8.177 8.177 0 0 1-7.053 3.795Z"/>
-                  </svg>
-          }
-          label="Subscriptions"
-          expanded={isHovered}
-        />
+      <Subscriptions expanded={isHovered} />
         <SidebarItem
           icon={
             <svg

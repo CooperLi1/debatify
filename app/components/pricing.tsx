@@ -69,9 +69,8 @@ export default function Pricing({ user, products, subscription }: Props) {
 
   if (!products.length) {
     return (
-      <section className="bg-black">
         <div className="max-w-6xl px-4 py-8 mx-auto sm:py-24 sm:px-6 lg:px-8">
-          <p className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+          <p className="text-4xl font-extrabold defaulttext sm:text-center sm:text-6xl">
             No subscription pricing plans found. Create them in your{' '}
             <a
               className="text-pink-500 underline"
@@ -84,62 +83,70 @@ export default function Pricing({ user, products, subscription }: Props) {
             .
           </p>
         </div>
-      </section>
     );
   }
 
   return (
-    <section className="bg-black">
-      <div className="mt-12 space-y-0 sm:mt-16 flex flex-wrap justify-center gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
-        {products.map((product) => {
-          const price = product?.prices[0];
-          if (!price) return null;
+      <div className="max-w-6xl px-6 mx-auto sm:py-24 sm:px-8 lg:px-12">
+        <div className="sm:align-center sm:flex sm:flex-col">
+          <h1 className="text-4xl font-extrabold defaulttext sm:text-center sm:text-6xl">
+            Choose Your Plan
+          </h1>
+          <p className="mt-4 text-xl text-gray-400 dark:text-gray-300 text-center sm:text-2xl">
+            Pick the plan that best fits your needs.
+          </p>
+        </div>
 
-          const priceString = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: price.currency!,
-            minimumFractionDigits: 0
-          }).format((price?.unit_amount || 0) / 100);
+        <div className="mt-12 flex flex-wrap justify-center gap-6 lg:max-w-4xl xl:max-w-none xl:mx-0">
+          {products.map((product) => {
+            const price = product?.prices[0];
+            if (!price) return null;
 
-          const billingInterval = price.interval || 'month';
+            const priceString = new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: price.currency!,
+              minimumFractionDigits: 0
+            }).format((price?.unit_amount || 0) / 100);
 
-          return (
-            <div
-              key={product.id}
-              className={cn(
-                'flex flex-col rounded-lg shadow-sm divide-y divide-zinc-600 bg-zinc-900',
-                {
-                  'border border-pink-500': subscription
-                    ? product.name === subscription?.prices?.products?.name
-                    : product.name === 'Freelancer'
-                },
-                'flex-1 basis-1/3 max-w-xs'
-              )}
-            >
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold leading-6 text-white">
-                  {product.name}
-                </h2>
-                <p className="mt-4 text-zinc-300">{product.description}</p>
-                <p className="mt-8">
-                  <span className="text-5xl font-extrabold text-white">
-                    {priceString}
-                  </span>
-                  <span className="text-base font-medium text-zinc-100">
-                    /{billingInterval}
-                  </span>
-                </p>
-                <button
-                  onClick={() => handleStripeCheckout(price)}
-                  className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md bg-pink-600 hover:bg-pink-700 transition"
-                >
-                  {subscription ? 'Manage' : 'Subscribe'}
-                </button>
+            const billingInterval = price.interval || 'month';
+
+            return (
+              <div
+                key={product.id}
+                className={cn(
+                  'flex flex-col rounded-lg shadow-lg divide-y textbox transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-2xl',
+                  {
+                    'border-2 border-pink-500': subscription
+                      ? product.name === subscription?.prices?.products?.name
+                      : product.name === 'Freelancer',
+                  },
+                  'flex-1 basis-1/3 max-w-xs'
+                )}
+              >
+                <div className="p-6">
+                  <h2 className="text-2xl font-semibold leading-6 defaulttext">
+                    {product.name}
+                  </h2>
+                  <p className="mt-4 text-gray-400 dark:text-gray-300">{product.description}</p>
+                  <p className="mt-8">
+                    <span className="text-5xl font-extrabold defaulttext">
+                      {priceString}
+                    </span>
+                    <span className="text-base font-medium defaulttext">
+                      /{billingInterval}
+                    </span>
+                  </p>
+                  <button
+                    onClick={() => handleStripeCheckout(price)}
+                    className="block w-full py-2 mt-8 text-sm font-semibold text-center text-white rounded-md bg-pink-500 hover:bg-pink-600 transition duration-300 cursor-pointer"
+                  >
+                    {subscription ? 'Manage' : 'Subscribe'}
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </section>
   );
 }

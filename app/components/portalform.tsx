@@ -43,15 +43,15 @@ export default function CustomerPortalForm({ subscription }: Props) {
   };
 
   return (
-    <div className="m-auto my-8 w-full max-w-3xl rounded-md border border-zinc-700">
-      <div className="px-5 py-4">
-        <h3 className="mb-1 text-2xl font-medium">Your Plan</h3>
-        <p className="text-zinc-300">
+    <div className="m-auto my-8 w-full max-w-3xl">
+      <div className="textbox">
+        <h3 className="mb-1 text-2xl font-bold defaulttext">Your Plan</h3>
+        <p className="defaulttext">
           {subscription
             ? `You are currently on the ${subscription?.prices?.products?.name} plan.`
             : 'You are not currently subscribed to any plan.'}
         </p>
-        <div className="mb-4 mt-8 text-xl font-semibold">
+        <div className="mb-4 mt-8 text-xl font-semibold defaulttext">
           {subscription ? (
             `${subscriptionPrice}/${subscription?.prices?.interval}`
           ) : (
@@ -62,16 +62,16 @@ export default function CustomerPortalForm({ subscription }: Props) {
         </div>
       </div>
 
-      <div className="rounded-b-md border-t border-zinc-700 bg-zinc-900 p-4 text-zinc-500">
+      <div className="textbox mt-4 border-t border-gray-300 dark:border-gray-600">
         <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
-          <p className="pb-4 sm:pb-0">Manage your subscription on Stripe.</p>
+          <p className="pb-4 sm:pb-0 defaulttext">
+            Manage your subscription.
+          </p>
           <button
             onClick={handleStripePortalRequest}
             disabled={isSubmitting}
-            className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${
-              isSubmitting
-                ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                : 'bg-pink-600 hover:bg-pink-700 text-white'
+            className={`submitbutton w-auto px-6 py-2 text-sm font-medium ${
+              isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
             }`}
           >
             {isSubmitting ? 'Opening...' : 'Open customer portal'}

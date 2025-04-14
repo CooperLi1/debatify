@@ -13,3 +13,4 @@ export const opensans = Open_Sans({weight: ['500'], subsets: ['latin']})
 import { Manrope } from 'next/font/google';
 
 export const manrope = Manrope({weight: ['500'], subsets: ['latin']})
+

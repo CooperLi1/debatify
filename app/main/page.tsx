@@ -1,7 +1,6 @@
-
 'use client';
-import { useState, useEffect, useRef, FormEvent } from "react";
-
+import { useState, useEffect, FormEvent } from "react";
+import { FiCopy } from "react-icons/fi"; // Add this at the top
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
@@ -16,30 +15,17 @@ export default function Search() {
   }
 
   //Display data titles
-  function extractTitle(str: string){
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = str;
-    const h4Element = tempDiv.querySelector("h4") as HTMLElement;
-    return h4Element?.innerText  || null;
-  }
-
-  function extractAuthor(str: string){
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = str;
-    const strongElement = tempDiv.querySelector("strong") as HTMLElement;
-    return strongElement?.innerText  || null;
-  }
-
-  const [results, setResults] = useState<string[]>([]);
+  const [results, setResults] = useState<{ tag: string; markdown: string; citation: string }[]>([]);
 
     //Dropdown
 
       //Fonts
-    const fonts = [
-      { name: "Calibri", className: "calibri" },
-      { name: "Arial", className: "arial" },
-      { name: "Times New Roman", className: "times" },
-    ];
+      const fonts = [
+        { name: "Calibri", className: "calibri" },
+        { name: "Arial", className: "arial" },
+        { name: "Times New Roman", className: "times" },
+        { name: "Comic Sans", className: "comic" }
+      ];
     const [font, setFont] = useState("calibri");
     const [highlightColor, setHighlightColor] = useState("#fdff00");
     const [modifiedHTML, setModifiedHTML] = useState("");
@@ -59,123 +45,19 @@ export default function Search() {
     
     //Search Function
     async function searchData(str: string){
-      setLazyLoading(false)
       setLoading(true);
-      setPage(1);
-      const response = await fetch("http://127.0.0.1:5001/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ str }),
+      const response = await fetch("https://18.206.223.109/search?q=" + str, {
+        method: "GET",
       });
       const data = await response.json();
-      setResults(data.results);
+      setResults(data);
       setLoading(false);
-      checkScrollHeight();
-    }
-
-    //Lazy Loading
-    const [lazyLoading, setLazyLoading] = useState(false);
-
-      //Load more entries
-     const [page, setPage] = useState<number>(1)
-
-    async function fetchData(currentPage: number): Promise<void>{
-      setLazyLoading(true);
-      const response = await fetch("http://127.0.0.1:5001/load", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ currentPage, input }),
-      });
-      const data = await response.json();
-      setResults(data.results);
-      setLazyLoading(false);
-      checkScrollHeight();
-    }
-
-    async function load(): Promise<void>{
-      setPage((prevPage: number) => prevPage + 1);
-    }
-    
-    useEffect(() => {
-      if (page !== 1) {
-        fetchData(page);
-      }
-    }, [page])
-
-
-      //Track Scroll
-    const [bottom, setBottom] = useState<boolean>(false);
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    const checkScrollHeight = () => {
-      if (containerRef.current) {
-        const { scrollHeight, clientHeight } = containerRef.current;
-        if (scrollHeight <= clientHeight) {
-          load();
-        }
-      }
-    };
-  
-    useEffect(() => {
-       const handleScroll = () => {
-        if (containerRef.current) {
-          const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-          const atBottom = scrollTop + clientHeight >= scrollHeight - 5;
-          if (atBottom && !bottom) {
-            load();
-          }
-          setBottom(atBottom);
-        }
-      };
-    
-      const container = containerRef.current;
-      if (container) {
-        container.addEventListener("scroll", handleScroll);
-      }
-
-      return () => {
-        if (container) {
-          container.removeEventListener("scroll", handleScroll);
-        }
-      };
-    }, []);
-    
-    //Save
-    const [saved, setSaved] = useState<string[]>(() => {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('saved');
-        return stored ? JSON.parse(stored) : [];
-      }
-      return [];
-    });
-  
-    useEffect(() => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('saved', JSON.stringify(saved));
-      }
-    }, [saved]);
-
-    function saver(result: string){
-      if(saved.includes(result)){
-        setSaved((prevSaved) => prevSaved.filter((item) => item !== result));
-      }
-      else{
-        setSaved((prevSaved) => [...prevSaved, result]);
-      }
-    }
-
-    //Copy to clipboard
-    async function copy(str: string){
-      await navigator.clipboard.writeText(str);
-      alert("Copied!");
     }
 
     //UI
     return(
-      //header
-      <div className="relative flex flex-col mt-5 ml-5 mr-5 defaulttext">
+        <div>
+        <div className="relative flex flex-col mt-5 ml-5 mr-5 defaulttext">
         <div className="flex justify-between items-center">
           <div className = 'flex-col'>
           <h1 className="text-3xl font-semibold mb-3">Find Evidence!</h1>
@@ -204,9 +86,7 @@ export default function Search() {
             </select>
           </div>
         </div>
-        
 
-        {/* search */}
         <form onSubmit={handleSubmit} className="flex-col flex w-3/10 mb-3">
           <div className="mb-5 w-full h-1 bg-gray-800 dark:bg-white rounded-full opacity-80" />
           <div className='flex'>
@@ -222,61 +102,54 @@ export default function Search() {
           </div>
         </form>
 
-
-        <div
-          ref={containerRef}
-          className="relative w-3/10 mt-2 overflow-y-auto p-2 rounded-md"
-          style={{ height: "calc(100vh - 210px)" }}
-        >
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <ul>
-              {results.map((result, index) => (
-                <div key={index} className="flex items-center">
-                  <button
-                    className="block w-full mb-2 text-left rounded-sm font-semibold ml-2 hover:bg-gray-200 p-2"
-                    onClick={() => setShow(result)}
-                  >
-                    {extractTitle(result)}
-                    <br />
-                    {extractAuthor(result)}
-                  </button>
-
-                  <button
-                    className="hover:cursor-pointer"
-                    onClick={() => saver(result)}
-                  >
-                    <img
-                      src={saved.includes(result) ? "bookmark_fill.svg" : "bookmark.svg"}
-                    />
-                  </button>
-                </div>
-              ))}
-            </ul>
-          )}
-          {lazyLoading && <p className="text-center text-gray-600">Loading more results...</p>}
-        </div>
-
-        <div
-          className={`relative mt-4 w-full max-w-[60%] p-4 rounded-md overflow-y-auto ${font}`}
-          style={{ height: "calc(100vh - 210px)" }}
-        >
-          {show && (
-            <div className="flex items-start">
-              <div
-                className={`bg-[${highlightColor}] text-[12pt]`}
-                dangerouslySetInnerHTML={{ __html: modifiedHTML }}
-              />
+      <div className= "w-3/10 mt-2 overflow-y-auto p-2 rounded-md" style={{ height: "calc(100vh - 210px)" }}>
+        {loading ? (<p>Loading...</p>):
+          <ul>
+          {results.map((result: { tag: string; markdown: string; citation: string }, index) => (
+            <div key={index} className="flex items-center">
               <button
-                className="flex-shrink-0 ml-4 hover:cursor-pointer"
-                onClick={() => copy(show)}
-              >
-                <img src="copy.svg" />
-              </button>
-            </div>
-          )}
+                key={index}
+                className="block w-full mb-2 text-left rounded-sm font-semibold ml-2 hover:bg-gray-200 dark:hover:bg-gray-600 p-2 cursor-pointer"
+                onClick={() => setShow(result.tag+"<br />"+result.citation+result.markdown+"<br />")}
+            >
+            <div dangerouslySetInnerHTML={{ __html: result.tag }} />
+            <div dangerouslySetInnerHTML={{ __html: result.citation }} />
+            </button>
         </div>
+        ))}
+        </ul>
+        }
       </div>
+
+      <div 
+        className={`absolute top-20 right-8 w-62/100 p-4 rounded-md overflow-y-auto ${show != null ? 'dark:bg-gray-100' : 'dark:bg-gray-900'} text-black reset-injected-html ${font}`} 
+        style={{ height: "calc(100vh - 150px)" }}      
+      >
+        {show && (
+          <div className="relative flex items-start reset-injected-html">
+
+          {/* Copy Button */}
+          <button
+            onClick={() => {
+              const type = "text/html";
+              const blob = new Blob([modifiedHTML], { type });
+              const data = [new ClipboardItem({ [type]: blob })];
+              navigator.clipboard.write(data);
+            }}
+            className="absolute top-0 right-0 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
+            title="Copy to clipboard"
+          >
+            <FiCopy size={20} />
+          </button>
+
+          <div
+            className={`bg-${highlightColor} text-[12pt] w-full `}
+            dangerouslySetInnerHTML={{ __html: modifiedHTML }}
+          />
+        </div>
+          )}
+      </div>
+    </div>
+    </div>
     );
 };

@@ -1,33 +1,29 @@
 'use client'
 import { useState, useEffect, useRef } from 'react';
 
-export default function Saved(){
-    //Dropdown
+export default function Saved() {
+  // Fonts
+  const fonts = [
+    { name: "Calibri", className: "calibri" },
+    { name: "Arial", className: "arial" },
+    { name: "Times New Roman", className: "times" },
+  ];
+  const [font, setFont] = useState("calibri");
 
-      //Fonts
-      const fonts = [
-        { name: "Calibri", className: "calibri" },
-        { name: "Arial", className: "arial" },
-        { name: "Times New Roman", className: "times" },
-      ];
-      const [font, setFont] = useState("calibri");
-        
-        //Highlight Color
-
+  // Highlight Color
   const [saved, setSaved] = useState<string[]>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('saved');
-      if(stored){
-        console.log(JSON.parse(stored))
+      if (stored) {
+        console.log(JSON.parse(stored));
         setSaved(JSON.parse(stored));
-      }
-      else{
+      } else {
         setSaved([]);
       }
     }
-  }, []); 
+  }, []);
 
   const isInitialRender = useRef(true);
 
@@ -35,27 +31,31 @@ export default function Saved(){
     if (typeof window !== 'undefined') {
       if (isInitialRender.current) {
         isInitialRender.current = false;
-        return; 
+        return;
       }
       localStorage.setItem('saved', JSON.stringify(saved));
     }
   }, [saved]);
 
-  //Copy to clipboard
-  async function copy(str: string){
+  // Copy to clipboard
+  async function copy(str: string) {
     await navigator.clipboard.writeText(str);
     alert("Copied!");
   }
-  return ( 
-    <div className="flex flex-col h-screen defaulttext relative px-5">
-      <h1 className="text-center mt-8 text-3xl font-bold">Saved Evidence</h1>
 
-      {/* Centered and relatively-sized divider */}
-      <div className="self-center mt-3 w-1/5 h-1 bg-gray-800 dark:bg-white rounded-full opacity-80" />
+  return (
+    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 defaulttext relative px-5 py-8">
+      <h1 className="text-center text-3xl font-bold text-gray-900 dark:text-white mb-6">
+        Saved Evidence
+      </h1>
 
-      <div className="flex justify-end items-center gap-4">
+      {/* Divider */}
+      <div className="self-center mb-6 w-1/5 h-1 bg-gray-800 dark:bg-white rounded-full opacity-80" />
+
+      {/* Font Dropdown */}
+      <div className="flex justify-end items-center gap-4 mb-8">
         <select
-          className="simpleform"
+          className="simpleform w-36"
           onChange={(e) => setFont(e.target.value)}
           value={font}
         >
@@ -70,11 +70,14 @@ export default function Saved(){
       {/* Content */}
       <div className={`flex flex-col items-center ${font}`}>
         {saved && saved.length > 0 ? (
-          <ul className="w-full max-w-screen-md">
+          <ul className="w-full max-w-screen-md space-y-4">
             {saved.map((htmlString, index) => (
-              <li key={index} className="relative bg-white dark:bg-gray-900 shadow-md rounded-md mb-4 px-5 py-4">
+              <li
+                key={index}
+                className="relative bg-white dark:bg-gray-800 shadow-md rounded-md p-4 transition-transform transform hover:scale-105"
+              >
                 <div
-                  className="text-[12pt] hover:bg-gray-100 dark:hover:bg-gray-800 rounded-sm"
+                  className="text-[12pt] text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-sm p-2"
                   dangerouslySetInnerHTML={{ __html: htmlString }}
                 />
                 <button
@@ -83,21 +86,23 @@ export default function Saved(){
                       prevSaved.filter((item) => item !== htmlString)
                     )
                   }
-                  className="absolute top-2 right-2 p-2 hover:cursor-pointer"
+                  className="absolute top-2 right-2 p-2 rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none"
                 >
-                  <img src={"bookmark_fill.svg"} />
+                  <img src={"bookmark_fill.svg"} alt="Delete" />
                 </button>
                 <button
-                  className="absolute top-2 right-10 p-2 hover:cursor-pointer"
+                  className="absolute top-2 right-10 p-2 rounded-full bg-green-600 text-white hover:bg-green-700 focus:outline-none"
                   onClick={() => copy(htmlString)}
                 >
-                  <img src="copy.svg" />
+                  <img src="copy.svg" alt="Copy" />
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="font-semibold text-xl text-center">Nothing saved</p>
+          <p className="font-semibold text-xl text-center text-gray-600 dark:text-gray-300">
+            Nothing saved
+          </p>
         )}
       </div>
     </div>
