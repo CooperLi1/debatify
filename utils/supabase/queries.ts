@@ -14,7 +14,9 @@ export const getSubscription = cache(async (supabase: SupabaseClient) => {
     .select('*, prices(*, products(*))')
     .in('status', ['trialing', 'active'])
     .maybeSingle();
-
+    
+  console.log(error)
+  console.log('subscription', subscription)
   return subscription;
 });
 

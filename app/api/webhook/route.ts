@@ -1,5 +1,3 @@
-console.log('Webhook route hit');
-
 import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
 import {
@@ -9,6 +7,8 @@ import {
   deleteProductRecord,
   deletePriceRecord
 } from '@/utils/supabase/admin';
+
+
 
 const relevantEvents = new Set([
   'product.created',
@@ -60,6 +60,7 @@ export async function POST(req: Request) {
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted':
           const subscription = event.data.object as Stripe.Subscription;
+          console.log(subscription)
           await manageSubscriptionStatusChange(
             subscription.id,
             subscription.customer as string,

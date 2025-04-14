@@ -1,6 +1,22 @@
 'use client';
 import { useState, useEffect, FormEvent } from "react";
-import { FiCopy } from "react-icons/fi"; // Add this at the top
+import { createClient } from '@/utils/supabase/client'
+import { FiCopy, FiBookmark } from "react-icons/fi"; // Add this at the top
+const supabase = createClient()
+
+
+//bookmarks
+async function saveBookmark(content: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from('bookmarks').insert([
+    {
+      user_id: user.id,
+      content: content
+    }
+  ]);
+}
 
 export default function Search() {
   const [loading, setLoading] = useState(false);
@@ -140,6 +156,19 @@ export default function Search() {
             title="Copy to clipboard"
           >
             <FiCopy size={20} />
+          </button>
+
+          <button
+            onClick={() => {
+              const type = "text/html";
+              const blob = new Blob([modifiedHTML], { type });
+              const data = [new ClipboardItem({ [type]: blob })];
+              navigator.clipboard.write(data);
+            }}
+            className="absolute top-0 right-10 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
+            title="Bookmark"
+          >
+            <FiBookmark size={20} />
           </button>
 
           <div

@@ -229,6 +229,21 @@ const manageSubscriptionStatusChange = async (
     expand: ['default_payment_method']
   });
   // Upsert the latest status of the subscription object.
+
+  const currentPeriodStart = subscription.billing_cycle_anchor
+  ? toDateTime(subscription.billing_cycle_anchor).toISOString()
+  : toDateTime(subscription.start_date).toISOString();
+
+// Calculate current_period_end by adding the interval to the current_period_start
+let currentPeriodEnd = null;
+const price = subscription.items.data[0].price;  // Access the price here
+if (price) {
+  currentPeriodEnd = new Date(currentPeriodStart);
+  currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+} 
+currentPeriodEnd = currentPeriodEnd?.toISOString();
+
+
   const subscriptionData: TablesInsert<'subscriptions'> = {
     id: subscription.id,
     user_id: uuid,
@@ -245,12 +260,8 @@ const manageSubscriptionStatusChange = async (
     canceled_at: subscription.canceled_at
       ? toDateTime(subscription.canceled_at).toISOString()
       : null,
-    current_period_start: toDateTime(
-      subscription.current_period_start
-    ).toISOString(),
-    current_period_end: toDateTime(
-      subscription.current_period_end
-    ).toISOString(),
+    current_period_start: currentPeriodStart,
+    current_period_end: currentPeriodEnd,
     created: toDateTime(subscription.created).toISOString(),
     ended_at: subscription.ended_at
       ? toDateTime(subscription.ended_at).toISOString()
