@@ -6,9 +6,9 @@ import { useEffect, useState, useActionState } from 'react'
 import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
-  const [loginState, loginAction] = useActionState(login, { error: null, success: false })
-  const [signupState, signupAction] = useActionState(signup, { error: null, success: false })
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [loginState, loginAction] = useActionState(login, { error: "", success: false });
+  const [signupState, signupAction] = useActionState(signup, { error: "", success: false });
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successfulSignUp, setSuccess] = useState(false)
 
   useEffect(() => {
