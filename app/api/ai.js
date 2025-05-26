@@ -34,50 +34,60 @@ export async function braveSearch(type, entry) {
     return error;
   }
 }
-
 export async function scrape(sites) {
-  const dict = {};
-
-  for (const url of sites) {
-    try {
+  console.log('🔍 Starting concurrent scrape...');
+  
+  const results = await Promise.allSettled(
+    sites.map(async (url) => {
       if (url.includes('wikipedia.org')) {
-        console.log(`Skipped Wikipedia URL: ${url}`);
-        continue;
+        console.log(`⛔️ Skipped Wikipedia URL: ${url}`);
+        return null;
       }
 
-      const response = await axios.get(url, {
-        timeout: 5000,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml',
-        },
-      });
+      try {
+        const response = await axios.get(url, {
+          timeout: 5000,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml',
+          },
+        });
 
-      const $ = cheerio.load(response.data);
+        const $ = cheerio.load(response.data);
+        const blocks = $('body')
+          .find('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre')
+          .map((_, el) => $(el).text().trim())
+          .get()
+          .filter((text) => text.length > 0);
 
-      const blocks = $('body')
-        .find('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre')
-        .map((_, el) => $(el).text().trim())
-        .get()
-        .filter(text => text.length > 0);
+        const pageText = blocks.map((block) => `    ${block}`).join('\n\n');
 
-      const pageText = blocks.map(block => `    ${block}`).join('\n\n');
+        if (pageText.length > 60000 || pageText.length < 10) {
+          console.log(`⛔️ Skipped ${url}: content too long/short (${pageText.length} chars)`);
+          return null;
+        }
 
-      if (pageText.length > 60000 || pageText.length < 10) {
-        console.log(`Skipped ${url}: content too long/short (${pageText.length} chars)`);
-        continue;
+        console.log(`✅ Scraped ${url}`);
+        return { url, text: pageText };
+      } catch (err) {
+        console.error(`❌ Error scraping ${url}:`, err.message);
+        return null;
       }
+    })
+  );
 
-      dict[url] = pageText;
-      console.log(`Scraped ${url}`);
-    } catch (error) {
-      console.error(`Error scraping ${url}:`, error.message);
+  const dict = {};
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value) {
+      dict[result.value.url] = result.value.text;
     }
   }
-  console.log(`done scraping`);
+
+  console.log(`📦 Successfully scraped ${Object.keys(dict).length} pages.`);
   return dict;
 }
+
 
 
 // export async function generate(type, entry){

@@ -33,21 +33,26 @@ export async function POST(req) {
     const links = await braveSearch(type, entry);
     const urls = links?.web?.results?.map((r) => r.url).filter(Boolean);
     const scraped = await scrape(urls);
-    const results = [];
     console.log('got past scrape')
 
-    for (const key in scraped) {
-      if (abortSignal?.aborted) break;
+    const genTasks = Object.entries(scraped).map(async ([key, content]) => {
+      if (abortSignal?.aborted) return null;
 
-      const content = scraped[key];
       try {
         const prompt = await getPrompt(entry, key, content);
         const card = await generateContent(prompt);
-        results.push(card);
+        return card;
       } catch (err) {
         console.error(`❌ Failed on key "${key}":`, err);
+        return null;
       }
-    }
+    });
+
+    const settled = await Promise.allSettled(genTasks);
+    const results = settled
+      .filter((r) => r.status === 'fulfilled' && r.value)
+      .map((r) => r.value);
+
     console.log(results)
     return NextResponse.json({ results });
   } catch (error) {
