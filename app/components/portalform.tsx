@@ -37,7 +37,7 @@ export default function CustomerPortalForm({ subscription }: Props) {
 
   const handleStripePortalRequest = async () => {
     setIsSubmitting(true);
-    const redirectUrl = await createStripePortal(currentPath);
+    const redirectUrl = await createStripePortal(currentPath ?? '/');
     setIsSubmitting(false);
     return router.push(redirectUrl);
   };
