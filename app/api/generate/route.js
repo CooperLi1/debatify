@@ -33,9 +33,9 @@ export async function POST(req) {
 
     const links = await braveSearch(type, entry);
     const urls = links?.web?.results?.map((r) => r.url).filter(Boolean);
-    scraped = {}
+    const scraped = {}
     try{
-    const scraped = await scrape(urls);
+      scraped = await scrape(urls);
     }
     catch(error){
       console.log('errorwhilescraping:' , error)

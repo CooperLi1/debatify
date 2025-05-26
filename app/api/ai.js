@@ -40,6 +40,11 @@ export async function scrape(sites) {
 
   for (const url of sites) {
     try {
+      if (url.includes('wikipedia.org')) {
+        console.log(`Skipped Wikipedia URL: ${url}`);
+        continue;
+      }
+
       const response = await axios.get(url, {
         timeout: 5000,
         headers: {
@@ -58,6 +63,11 @@ export async function scrape(sites) {
         .filter(text => text.length > 0);
 
       const pageText = blocks.map(block => `    ${block}`).join('\n\n');
+
+      if (pageText.length > 60000) {
+        console.log(`Skipped ${url}: content too long (${pageText.length} chars)`);
+        continue;
+      }
 
       dict[url] = pageText;
       console.log(`Scraped ${url}`);
