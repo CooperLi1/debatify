@@ -22,8 +22,8 @@ export async function POST(req) {
     return NextResponse.json({ message: 'Request aborted before start' }, { status: 499 });
   }
 
-  // try {
-    // Early exit if aborted mid-request
+  try {
+    Early exit if aborted mid-request
     abortSignal?.addEventListener('abort', () => {
       console.log('❌ Server request was aborted by the client.');
     });
@@ -51,9 +51,9 @@ export async function POST(req) {
     }
     console.log(results)
     return NextResponse.json({ results });
-  // } catch (error) {
-  //   const message = error instanceof Error ? error.message : 'Unknown error';
-  //   console.log('API Error:', message);
-  //   return NextResponse.json({ message }, { status: 500 });
-  // }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.log('API Error:', message);
+    return NextResponse.json({ message }, { status: 500 });
+  }
 }
