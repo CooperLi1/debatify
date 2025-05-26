@@ -7,7 +7,7 @@ import DarkModeToggle from "@/app/components/darkmodetoggle";
 import "./globals.css"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname() ?? '/'
 
   // Define dynamic titles based on the current route
   const getPageTitle = (path: string) => {
