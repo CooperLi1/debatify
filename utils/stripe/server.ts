@@ -166,13 +166,13 @@ export async function createStripePortal(currentPath: string) {
     if (error instanceof Error) {
       console.error(error);
       return getErrorRedirect(
-        currentPath,
+        currentPath ?? '/',
         error.message,
         'Please try again later or contact a system administrator.'
       );
     } else {
       return getErrorRedirect(
-        currentPath,
+        currentPath ?? '/',
         'An unknown error occurred.',
         'Please try again later or contact a system administrator.'
       );

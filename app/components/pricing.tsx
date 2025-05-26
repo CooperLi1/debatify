@@ -46,7 +46,7 @@ export default function Pricing({ user, products, subscription }: Props) {
 
     const { errorRedirect, sessionId } = await checkoutWithStripe(
       price,
-      currentPath
+      currentPath ?? '/'
     );
 
     if (errorRedirect) {
@@ -56,7 +56,7 @@ export default function Pricing({ user, products, subscription }: Props) {
     if (!sessionId) {
       return router.push(
         getErrorRedirect(
-          currentPath,
+          currentPath ?? '/',
           'An unknown error occurred.',
           'Please try again later or contact a system administrator.'
         )
