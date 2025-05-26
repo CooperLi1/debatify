@@ -47,10 +47,10 @@ export async function POST(req) {
           results.push(card);
         } catch (err) {
           console.error(`❌ Failed on key "${key}":`, err);
-
         }
       }
     }
+    console.log(results)
     return NextResponse.json({ results });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
