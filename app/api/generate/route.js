@@ -23,7 +23,6 @@ export async function POST(req) {
   }
 
   try {
-    Early exit if aborted mid-request
     abortSignal?.addEventListener('abort', () => {
       console.log('❌ Server request was aborted by the client.');
     });
