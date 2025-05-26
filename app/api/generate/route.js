@@ -15,6 +15,7 @@ async function loadGoogleCredentials() {
 }
 
 export async function POST(req) {
+  console.log('generate running')
   const abortSignal = req.signal;
 
   if (abortSignal?.aborted) {
@@ -35,6 +36,7 @@ export async function POST(req) {
 
     const scraped = await scrape(urls);
     const results = [];
+    console.log('got past scrape')
 
     for (const key in scraped) {
       if (abortSignal?.aborted) break;
