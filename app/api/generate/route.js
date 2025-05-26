@@ -40,14 +40,17 @@ export async function POST(req) {
       if (abortSignal?.aborted) break;
 
       const content = scraped[key];
-      console.log(content.length)
       if (typeof content === 'string' && content.length < 60000 && content.length > 10) {
-        const prompt = await getPrompt(entry, key, scraped[key]);
-        const card = await generateContent(prompt);
-        results.push(card);
+        try {
+          const prompt = await getPrompt(entry, key, content);
+          const card = await generateContent(prompt);
+          results.push(card);
+        } catch (err) {
+          console.error(`❌ Failed on key "${key}":`, err);
+
+        }
       }
     }
-
     return NextResponse.json({ results });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
