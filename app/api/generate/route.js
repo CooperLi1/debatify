@@ -3,6 +3,7 @@ import { braveSearch, scrape, generateContent, getPrompt } from '@/app/api/ai';
 import fs from 'fs/promises';
 import path from 'path';
 import { GoogleAuth } from 'google-auth-library';
+import pLimit from 'p-limit';
 
 async function loadGoogleCredentials() {
   const base64 = process.env.GOOGLECREDENTIALS;
@@ -35,25 +36,28 @@ export async function POST(req) {
     const scraped = await scrape(urls);
     console.log('got past scrape')
 
-    const genTasks = Object.entries(scraped).map(async ([key, content]) => {
-      if (abortSignal?.aborted) return null;
+    const limit = pLimit(3); // Limit to 3 concurrent LLM generations
 
-      try {
-        const prompt = await getPrompt(entry, key, content);
-        const card = await generateContent(prompt);
-        return card;
-      } catch (err) {
-        console.error(`❌ Failed on key "${key}":`, err);
-        return null;
-      }
-    });
+    const genTasks = Object.entries(scraped).map(([key, content]) =>
+      limit(async () => {
+        if (abortSignal?.aborted) return null;
+        try {
+          const prompt = await getPrompt(entry, key, content);
+          const card = await generateContent(prompt);
+          return card;
+        } catch (err) {
+          console.error(`❌ Failed on key "${key}":`, err);
+          return null;
+        }
+      })
+    );
 
     const settled = await Promise.allSettled(genTasks);
     const results = settled
       .filter((r) => r.status === 'fulfilled' && r.value)
       .map((r) => r.value);
 
-    console.log(results)
+    console.log(results);
     return NextResponse.json({ results });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

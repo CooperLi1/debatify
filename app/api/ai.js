@@ -5,35 +5,53 @@ const bravekey = process.env.BRAVE_API;
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { GoogleGenAI } from '@google/genai';
-
 export async function braveSearch(type, entry) {
-  try{
+  try {
     const response = await fetch(`https://api.search.brave.com/res/v1/${encodeURIComponent(type)}/search?q=${encodeURIComponent(entry)}`, {
       method: 'GET',
       headers: {
-        'X-Subscription-Token': bravekey, 
+        'X-Subscription-Token': bravekey,
         'Accept': 'application/json',
         'Api-Version': '2023-10-11'
       }
     });
+
     console.log("Status:", response.status, response.statusText);
 
     const data = await response.json();
-
     const results = data[type]?.results;
 
-    // if (!results) {
-    //   console.warn(`No results found for type: ${type}`);
-    // } else {
-    //   console.log(results.map(r => r.url || r.link || r.title));
-    // }
+    if (!results) {
+      console.warn(`No results found for type: ${type}`);
+      return { web: { results: [] } };
+    }
 
-    return data;
-  } catch(error){
-    console.log(error)
-    return error;
+    // Score results based on relevance to entry
+    const scored = results.map((r) => {
+      const title = r.title || '';
+      const description = r.description || '';
+      const text = `${title} ${description}`.toLowerCase();
+      const terms = entry.toLowerCase().split(/\s+/);
+
+      const score = terms.reduce((acc, term) => acc + (text.includes(term) ? 1 : 0), 0);
+
+      return { ...r, score };
+    });
+
+    // Sort descending by score
+    const ranked = scored.sort((a, b) => b.score - a.score);
+
+    return {
+      [type]: {
+        results: ranked
+      }
+    };
+  } catch (error) {
+    console.error('❌ Brave search error:', error);
+    return { web: { results: [] } };
   }
 }
+
 export async function scrape(sites) {
   console.log('🔍 Starting concurrent scrape...');
   

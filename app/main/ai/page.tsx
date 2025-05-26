@@ -85,7 +85,7 @@ async function searchData(str: string) {
   const abortController = new AbortController();
   controller.current = abortController;
 
-  setLoading('fetching results (could take a few minutes)...');
+  setLoading('fetching results (could take up to a minute)...');
   hasActiveRequest.current = true; 
 
   try {
@@ -179,7 +179,7 @@ async function searchData(str: string) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.length === 0 && hasSearched === true ? (
               <div className="text-gray-500 text-sm">
-                No Results :(
+                No Results or Timeout :(
               </div>
             ) : (
               results.map((html, index) => (
