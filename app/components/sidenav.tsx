@@ -1,5 +1,6 @@
 'use client';
 import { Bars3Icon, XMarkIcon, BookmarkIcon } from "@heroicons/react/24/outline";
+import { FaBrain } from 'react-icons/fa';
 import { usePathname, useRouter } from "next/navigation";
 import {logout} from '@/app/account/logout/actions'
 import { createClient } from '@/utils/supabase/client'
@@ -157,6 +158,35 @@ function Search({ expanded }: { expanded: boolean }) {
   );
 };
 
+function AI({ expanded }: { expanded: boolean }) {
+  const pathname = usePathname(); // Get current route
+  const router = useRouter(); // Handle navigation
+
+  const isActive = pathname === "/main/ai";
+
+  return (
+    <li className="w-full">
+      <button
+        onClick={() => router.push("/main/ai")} // Redirect on click
+        className={`group w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
+          ${isActive ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400" 
+                     : "text-gray-900 dark:text-white grouphover:bg-gray-200 dark:grouphover:bg-gray-700"}`}
+      >
+<FaBrain
+  className={`shrink-0 w-6 h-6 transition duration-75 ${
+    isActive
+      ? "text-blue-600 dark:text-blue-400"
+      : "text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+  }`}
+/>
+
+        {expanded && <span className="ms-3">DebatifyAI</span>}
+      </button>
+    </li>
+  );
+};
+
+
 function Subscriptions({ expanded }: { expanded: boolean }) {
   const pathname = usePathname(); // Get current route
   const router = useRouter(); // Handle navigation
@@ -250,6 +280,7 @@ const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
     <ul className="space-y-2 font-medium pt-8 w-full">
         <User expanded={isHovered}/>
         <Search expanded={isHovered} />
+        <AI expanded={isHovered} />
         <Bookmarks expanded={isHovered} />
         <LogoutButton expanded={isHovered} />
       </ul>

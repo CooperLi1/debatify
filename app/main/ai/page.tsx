@@ -19,10 +19,12 @@ async function saveBookmark(content: string) {
 }
 
 export default function Search() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState('');
   const [show, setShow] = useState<string | null>(null);
-  const[ searchtype, setType] = useState("web")
   const controller = useRef<AbortController | null>(null);
+  const latestRequest = useRef(0);
+  const hasActiveRequest = useRef(false);
+
 
   //Search Bar
   const [input, setInput] = useState("");
@@ -31,6 +33,15 @@ export default function Search() {
     e.preventDefault();
     searchData(input)
   }
+
+  useEffect(() => {
+    const handleKeyDown = (e: { key: string; }) => {
+      if (e.key === "Escape") setShow(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
 
   //Display data titles
   const [results, setResults] = useState<string[]>([]);
@@ -61,51 +72,61 @@ export default function Search() {
         updateHighlightedHTML();
       }, [highlightColor, show]);
     
-    //Search Function
-    // async function searchData(str: string){
-    //   setLoading(true);
-    //   const data = await generate(searchtype, str);
-    // //   setResults(data);
-    //   setLoading(false);
-    // }
+    
+async function searchData(str: string) {
+  const requestId = Date.now();
+  latestRequest.current = requestId;
 
-    async function searchData(str: string) {
-        if (controller.current) controller.current.abort();
-        controller.current = new AbortController();
+  if (hasActiveRequest.current && controller.current) {
+    controller.current.abort();
+    setLoading('cancelling previous search...');
+    await new Promise((r) => setTimeout(r, 400));
+  } 
 
-        setLoading(true);
-        try {
-            const res = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: searchtype, entry: str }),
-            signal: controller.current.signal,
-            });
+  const abortController = new AbortController();
+  controller.current = abortController;
 
-            const contentType = res.headers.get('content-type');
-            if (!res.ok || !contentType?.includes('application/json')) {
-            const text = await res.text();
-            throw new Error(`Unexpected response:\n${text}`);
-            }
+  setLoading('fetching results (could take a few minutes)...');
+  hasActiveRequest.current = true; 
 
-            const data = await res.json();
-            setResults(data);
-            console.log(results)
-        } catch (error: unknown) {
-            if (error instanceof DOMException && error.name === 'AbortError') {
-            console.log('Request aborted');
-            } else {
-            console.error('Fetch error:', error);
-            }
-        } finally {
-            setLoading(false);
-        }
-        }
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'web', entry: str }),
+      signal: abortController.signal,
+    });
+
+    const contentType = res.headers.get('content-type');
+    if (!res.ok || !contentType?.includes('application/json')) {
+      const text = await res.text();
+      throw new Error(`Unexpected response:\n${text}`);
+    }
+
+    const data = await res.json();
+
+    if (latestRequest.current === requestId) {
+      setResults(data.results);
+    }
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.log("Request aborted.");
+    } else {
+      console.error("Fetch error:", error);
+    }
+  } finally {
+    if (latestRequest.current === requestId) {
+      setLoading('');
+      hasActiveRequest.current = false;
+    }
+  }
+}
+
 
     //UI
     return(
         <div>
-        <div className="relative flex flex-col mt-5 ml-5 mr-5 defaulttext">
+        <div className="relative z-0 flex flex-col mt-5 ml-5 mr-5 defaulttext pointer-events-auto">
         <div className="flex justify-between items-center">
           <div className = 'flex-col'>
           <h1 className="text-3xl font-semibold mb-3">Search with AI</h1>
@@ -131,15 +152,7 @@ export default function Search() {
                   {font.name}
                 </option>
               ))}
-
-            </select>
-                        <select
-              className="simpleform"
-              onChange={(e) => setType(e.target.value)}
-            >
-              <option value="web">Web</option>
-              <option value="news">News</option>
-            </select>
+             </select>
           </div>
         </div>
 
@@ -157,59 +170,131 @@ export default function Search() {
           <button type="submit" className="ml-2 simpleform">Submit</button>
           </div>
         {loading && (
-            <p className="mt-2 text-sm text-gray-500">Fetching results...</p>
+            <p className="mt-2 text-sm text-gray-500">{loading}</p>
         )}
 
         </form>
-
-      <div className="w-3/10 mt-2 overflow-y-auto p-2 rounded-md" style={{ height: "calc(100vh - 210px)" }}>
-          <ul>
+        <div className="mt-6 overflow-y-auto px-4 cursor-default relative z-10" style={{ height: "calc(100vh - 200px)" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((html, index) => (
-              <li key={index} className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
-                <div dangerouslySetInnerHTML={{ __html: html }} />
-              </li>
+              <div
+                key={index}
+                onClick={() => setShow(html)}
+                className="group relative z-5 bg-white dark:bg-gray-100 text-black shadow-lg rounded-2xl overflow-hidden p-6 pt-12 hover:shadow-xl transition-all duration-200"
+                style={{ height: '340px' }}
+              >
+                {/* Copy Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const type = "text/html";
+                    const blob = new Blob([html], { type });
+                    const data = [new ClipboardItem({ [type]: blob })];
+                    navigator.clipboard.write(data);
+                  }}
+                  className="absolute top-3 right-3 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
+                  title="Copy to clipboard"
+                >
+                  <FiCopy size={18} />
+                </button>
+
+                {/* Bookmark Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    saveBookmark(html);
+                  }}
+                  className="absolute top-3 right-10 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
+                  title="Bookmark"
+                >
+                  <FiBookmark size={18} />
+                </button>
+
+                <div className={`reset-injected-html ${font} text-sm overflow-hidden`} style={{ maxHeight: '260px' }}>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: html.replace(
+                      /<mark>(.*?)<\/mark>/g,
+                      `<span style="background-color: ${highlightColor}; padding: 2px;">$1</span>`
+                    ) }}
+                  />
+                  <span className="absolute bottom-3 left-3 text-xs text-gray-500 group-hover:opacity-100 opacity-0 transition-opacity">Click to expand</span>
+                </div>
+              </div>
             ))}
-          </ul>
-      </div>
+          </div>
 
-      <div 
-        className={`absolute top-20 right-8 w-62/100 p-4 rounded-md overflow-y-auto ${show != null ? 'dark:bg-gray-100' : 'dark:bg-gray-900'} text-black reset-injected-html ${font}`} 
-        style={{ height: "calc(100vh - 150px)" }}      
-      >
-        {show && (
-          <div className="relative flex items-start reset-injected-html">
+          {/* Fullscreen Modal View */}
+          {show && (
+            <div
+              className="fixed inset-0 backdrop-blur-md bg-white/30 dark:bg-black/30 flex items-center justify-center z-50 transition-all duration-300"
+              onClick={() => setShow(null)}
+            >
+              <div
+                className="bg-white dark:bg-gray-100 text-black rounded-2xl p-8 max-w-4xl w-full h-[80vh] overflow-y-auto relative scale-100 opacity-100 animate-fadeIn"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Expanded Bookmark Button */}
+                <button
+                  onClick={() => saveBookmark(show)}
+                  className="absolute top-3 right-3 z-10 text-gray-500 hover:text-black dark:hover:text-white cursor-pointer"
+                  title="Bookmark"
+                >
+                  <FiBookmark size={20} />
+                </button>
 
-          {/* Copy Button */}
-          <button
-            onClick={() => {
-              const type = "text/html";
-              const blob = new Blob([modifiedHTML], { type });
-              const data = [new ClipboardItem({ [type]: blob })];
-              navigator.clipboard.write(data);
-            }}
-            className="absolute top-0 right-0 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
-            title="Copy to clipboard"
-          >
-            <FiCopy size={20} />
-          </button>
+                {/* Expanded Copy Button */}
+                <button
+                  onClick={() => {
+                    const type = "text/html";
+                    const blob = new Blob([show], { type });
+                    const data = [new ClipboardItem({ [type]: blob })];
+                    navigator.clipboard.write(data);
+                  }}
+                  className="absolute top-3 right-12 z-10 text-gray-500 hover:text-black dark:hover:text-white cursor-pointer"
+                  title="Copy to clipboard"
+                >
+                  <FiCopy size={20} />
+                </button>
 
-          <button
-            onClick={() => {
-              saveBookmark(modifiedHTML);
-            }}
-            className="absolute top-0 right-10 text-lg text-gray-600 hover:text-gray-300 p-1 cursor-pointer"
-            title="Bookmark"
-          >
-            <FiBookmark size={20} />
-          </button>
+                {/* Close Button */}
+                <button
+                  onClick={() => setShow(null)}
+                  className="absolute top-3 right-20 z-10 text-gray-600 hover:text-black dark:hover:text-white cursor-pointer"
+                  title="Close"
+                >
+                  ✕
+                </button>
 
-          <div
-            className={`bg-${highlightColor} text-[12pt] w-full p-7 `}
-            dangerouslySetInnerHTML={{ __html: modifiedHTML }}
-          />
-        </div>
+                <div className={`reset-injected-html ${font} text-base mt-8`}>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: show.replace(
+                        /<mark>(.*?)<\/mark>/g,
+                        `<span style="background-color: ${highlightColor}; padding: 2px;">$1</span>`
+                      )
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
           )}
-      </div>
+        </div>
+
+        <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        `}</style>
     </div>
     </div>
     );

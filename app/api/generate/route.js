@@ -14,32 +14,44 @@ async function loadGoogleCredentials() {
   process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
 }
 
-
 export async function POST(req) {
+  const abortSignal = req.signal;
+
+  if (abortSignal?.aborted) {
+    return NextResponse.json({ message: 'Request aborted before start' }, { status: 499 });
+  }
+
   try {
+    // Early exit if aborted mid-request
+    abortSignal?.addEventListener('abort', () => {
+      console.log('❌ Server request was aborted by the client.');
+    });
+
     await loadGoogleCredentials();
     const { type, entry } = await req.json();
+
     const links = await braveSearch(type, entry);
     const urls = links?.web?.results?.map((r) => r.url).filter(Boolean);
 
     const scraped = await scrape(urls);
-    const results = []
+    const results = [];
+
     for (const key in scraped) {
+      if (abortSignal?.aborted) break;
+
       const content = scraped[key];
       console.log(content.length)
-
       if (typeof content === 'string' && content.length < 60000 && content.length > 10) {
-        const prompt = await getPrompt(entry, key, scraped[key])
-        const card = await generateContent(prompt)
-        results.push(card)
+        const prompt = await getPrompt(entry, key, scraped[key]);
+        const card = await generateContent(prompt);
+        results.push(card);
       }
     }
-    // console.log(results)
+
     return NextResponse.json({ results });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.log(message)
+    console.log('API Error:', message);
     return NextResponse.json({ message }, { status: 500 });
   }
 }
-

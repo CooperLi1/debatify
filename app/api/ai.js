@@ -152,7 +152,7 @@ export async function generateContent(userInput) {
 export async function getPrompt(search, link, body){
   return `Turn this link/evidence body into a cut card arguing ${search} in html format that i can directly display on a website
           Begin with a tagline: a 1-sentence summary of the argument.
-          Include a citation: author(s), qualifications, title, publication, date, and URL. End the citation with //debatifyAI
+          Include a citation: author(s), qualifications, title, publication, date, and URL. End the citation ONLY with //debatifyAI, not the other paragraphs.
           Provide the body: multiple full paragraphs copied verbatim from the source.
           Formatting in the body:
           Never include partial paragraphs—only full, unedited ones.
