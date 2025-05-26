@@ -36,7 +36,7 @@ export async function POST(req) {
     const scraped = await scrape(urls);
     console.log('got past scrape')
 
-    const limit = pLimit(3); // Limit to 3 concurrent LLM generations
+    const limit = pLimit(3);
 
     const genTasks = Object.entries(scraped).map(([key, content]) =>
       limit(async () => {
