@@ -75,7 +75,7 @@ export async function scrape(sites) {
       console.error(`Error scraping ${url}:`, error.message);
     }
   }
-
+  console.log(dict.length)
   return dict;
 }
 
