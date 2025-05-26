@@ -6,6 +6,20 @@ import { createClient } from '@/utils/supabase/client';
 import type { Database } from '@/types_db';
 import Fuse from 'fuse.js';
 
+  function flattenAndJoin(obj: Record<string, any>): string {
+    const values = Object.values(obj)
+      .map(val => {
+        if (typeof val === 'string') {
+          return val.replace(/<[^>]*>/g, '').toLowerCase(); // strip HTML
+        }
+        if (typeof val === 'object' && val !== null) {
+          return flattenAndJoin(val); // recurse into nested objects
+        }
+        return '';
+      });
+    return values.join(' ');
+  }
+
 export default function Saved() {
   const supabase = createClient();
 
@@ -39,7 +53,12 @@ export default function Saved() {
         return;
       }
 
-      setSaved(data);
+      const cleaned = data.map(item => ({
+        ...item,
+        plainText: flattenAndJoin(item)
+      }));
+
+      setSaved(cleaned);
     };
 
     fetchBookmarks();
@@ -48,8 +67,12 @@ export default function Saved() {
   useEffect(() => {
     if (saved.length > 0) {
       const fuseInstance = new Fuse(saved, {
-        keys: ['content'],
-        threshold: 0.3, // Adjust this for more or less fuzzy matching
+        keys: ['plainText'],
+        threshold: 0.5,
+        distance: 100,               // Allow matches farther apart in text
+        minMatchCharLength: 2,       // Minimum characters to match
+        ignoreLocation: true,        // Don't penalize if match is far into the text
+        useExtendedSearch: false     // Stick with default fuzzy substring matching
       });
       setFuse(fuseInstance);
     }
@@ -67,7 +90,7 @@ export default function Saved() {
 
   // Search with Fuse.js
   const filteredBookmarks = searchQuery
-    ? fuse?.search(searchQuery).map(({ item }) => item) || []
+    ? fuse?.search(`="${searchQuery.toLowerCase()}"`).map(({ item }) => item) || []
     : saved;
 
   return (
