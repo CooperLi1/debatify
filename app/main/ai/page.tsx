@@ -24,6 +24,8 @@ export default function Search() {
   const controller = useRef<AbortController | null>(null);
   const latestRequest = useRef(0);
   const hasActiveRequest = useRef(false);
+  const [results, setResults] = useState<string[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
 
   //Search Bar
@@ -42,9 +44,6 @@ export default function Search() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-
-  //Display data titles
-  const [results, setResults] = useState<string[]>([]);
 
     //Dropdown
 
@@ -109,6 +108,7 @@ async function searchData(str: string) {
       setResults(data.results);
     }
   } catch (error: unknown) {
+    setHasSearched(true)
     if (error instanceof DOMException && error.name === 'AbortError') {
       console.log("Request aborted.");
     } else {
@@ -116,6 +116,7 @@ async function searchData(str: string) {
     }
   } finally {
     if (latestRequest.current === requestId) {
+      setHasSearched(true)
       setLoading('');
       hasActiveRequest.current = false;
     }
@@ -176,51 +177,57 @@ async function searchData(str: string) {
         </form>
         <div className="mt-6 overflow-y-auto px-4 cursor-default relative z-10" style={{ height: "calc(100vh - 200px)" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {results.map((html, index) => (
-              <div
-                key={index}
-                onClick={() => setShow(html)}
-                className="group relative z-5 bg-white dark:bg-gray-100 text-black shadow-lg rounded-2xl overflow-hidden p-6 pt-12 hover:shadow-xl transition-all duration-200"
-                style={{ height: '340px' }}
-              >
-                {/* Copy Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const type = "text/html";
-                    const blob = new Blob([html], { type });
-                    const data = [new ClipboardItem({ [type]: blob })];
-                    navigator.clipboard.write(data);
-                  }}
-                  className="absolute top-3 right-3 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
-                  title="Copy to clipboard"
-                >
-                  <FiCopy size={18} />
-                </button>
-
-                {/* Bookmark Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    saveBookmark(html);
-                  }}
-                  className="absolute top-3 right-10 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
-                  title="Bookmark"
-                >
-                  <FiBookmark size={18} />
-                </button>
-
-                <div className={`reset-injected-html ${font} text-sm overflow-hidden`} style={{ maxHeight: '260px' }}>
-                  <div
-                    dangerouslySetInnerHTML={{ __html: html.replace(
-                      /<mark>(.*?)<\/mark>/g,
-                      `<span style="background-color: ${highlightColor}; padding: 2px;">$1</span>`
-                    ) }}
-                  />
-                  <span className="absolute bottom-3 left-3 text-xs text-gray-500 group-hover:opacity-100 opacity-0 transition-opacity">Click to expand</span>
-                </div>
+            {results.length === 0 && hasSearched === true ? (
+              <div className="text-gray-500 text-sm">
+                No Results :(
               </div>
-            ))}
+            ) : (
+              results.map((html, index) => (
+                <div
+                  key={index}
+                  onClick={() => setShow(html)}
+                  className="group relative z-5 bg-white dark:bg-gray-100 text-black shadow-lg rounded-2xl overflow-hidden p-6 pt-12 hover:shadow-xl transition-all duration-200"
+                  style={{ height: '340px' }}
+                >
+                  {/* Copy Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const type = "text/html";
+                      const blob = new Blob([html], { type });
+                      const data = [new ClipboardItem({ [type]: blob })];
+                      navigator.clipboard.write(data);
+                    }}
+                    className="absolute top-3 right-3 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
+                    title="Copy to clipboard"
+                  >
+                    <FiCopy size={18} />
+                  </button>
+
+                  {/* Bookmark Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      saveBookmark(html);
+                    }}
+                    className="absolute top-3 right-10 z-10 text-gray-500 hover:text-gray-800 dark:hover:text-white cursor-pointer"
+                    title="Bookmark"
+                  >
+                    <FiBookmark size={18} />
+                  </button>
+
+                  <div className={`reset-injected-html ${font} text-sm overflow-hidden`} style={{ maxHeight: '260px' }}>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: html.replace(
+                        /<mark>(.*?)<\/mark>/g,
+                        `<span style="background-color: ${highlightColor}; padding: 2px;">$1</span>`
+                      ) }}
+                    />
+                    <span className="absolute bottom-3 left-3 text-xs text-gray-500 group-hover:opacity-100 opacity-0 transition-opacity">Click to expand</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Fullscreen Modal View */}

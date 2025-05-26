@@ -33,13 +33,7 @@ export async function POST(req) {
 
     const links = await braveSearch(type, entry);
     const urls = links?.web?.results?.map((r) => r.url).filter(Boolean);
-    const scraped = {}
-    try{
-      scraped = await scrape(urls);
-    }
-    catch(error){
-      console.log('errorwhilescraping:' , error)
-    }
+    const scraped = await scrape(urls);
     const results = [];
     console.log('got past scrape')
 
@@ -47,14 +41,12 @@ export async function POST(req) {
       if (abortSignal?.aborted) break;
 
       const content = scraped[key];
-      if (typeof content === 'string' && content.length < 60000 && content.length > 10) {
-        try {
-          const prompt = await getPrompt(entry, key, content);
-          const card = await generateContent(prompt);
-          results.push(card);
-        } catch (err) {
-          console.error(`❌ Failed on key "${key}":`, err);
-        }
+      try {
+        const prompt = await getPrompt(entry, key, content);
+        const card = await generateContent(prompt);
+        results.push(card);
+      } catch (err) {
+        console.error(`❌ Failed on key "${key}":`, err);
       }
     }
     console.log(results)
