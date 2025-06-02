@@ -25,7 +25,7 @@ export async function POST(req) {
 
   try {
     abortSignal?.addEventListener('abort', () => {
-      console.log('❌ Server request was aborted by the client.');
+      console.log('Server request was aborted by the client.');
     });
 
     await loadGoogleCredentials();
@@ -46,7 +46,7 @@ export async function POST(req) {
           const card = await generateContent(prompt);
           return card;
         } catch (err) {
-          console.error(`❌ Failed on key "${key}":`, err);
+          console.error(`Failed on key "${key}":`, err);
           return null;
         }
       })

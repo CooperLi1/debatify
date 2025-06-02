@@ -47,18 +47,18 @@ export async function braveSearch(type, entry) {
       }
     };
   } catch (error) {
-    console.error('❌ Brave search error:', error);
+    console.error(' Brave search error:', error);
     return { web: { results: [] } };
   }
 }
 
 export async function scrape(sites) {
-  console.log('🔍 Starting concurrent scrape...');
+  console.log(' Starting concurrent scrape...');
   
   const results = await Promise.allSettled(
     sites.map(async (url) => {
       if (url.includes('wikipedia.org')) {
-        console.log(`⛔️ Skipped Wikipedia URL: ${url}`);
+        console.log(` Skipped Wikipedia URL: ${url}`);
         return null;
       }
 
@@ -86,10 +86,10 @@ export async function scrape(sites) {
           return null;
         }
 
-        console.log(`✅ Scraped ${url}`);
+        console.log(` Scraped ${url}`);
         return { url, text: pageText };
       } catch (err) {
-        console.error(`❌ Error scraping ${url}:`, err.message);
+        console.error(` Error scraping ${url}:`, err.message);
         return null;
       }
     })
@@ -102,11 +102,111 @@ export async function scrape(sites) {
     }
   }
 
-  console.log(`📦 Successfully scraped ${Object.keys(dict).length} pages.`);
+  console.log(`Successfully scraped ${Object.keys(dict).length} pages.`);
   return dict;
 }
 
+// export async function scrape(sites) {
+//   console.log('🔍 Starting concurrent scrape...');
 
+//   const results = await Promise.allSettled(
+//     sites.map(async (url) => {
+//       if (url.includes('wikipedia.org')) {
+//         console.log(`⛔️ Skipped Wikipedia URL: ${url}`);
+//         return null;
+//       }
+
+//       try {
+//         const response = await axios.get(url, {
+//           timeout: 5000,
+//           headers: {
+//             'User-Agent':
+//               'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+//             Accept: 'text/html,application/xhtml+xml',
+//           },
+//         });
+
+//         const $ = cheerio.load(response.data);
+//         let blocks = $('body')
+//           .find('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre')
+//           .map((_, el) => $(el).text().trim())
+//           .get()
+//           .filter((text) => text.length > 0);
+
+//         // Smart start index
+//         let startIndex = 0;
+//         for (let i = 0; i < blocks.length; i++) {
+//           if (blocks[i].split(/\s+/).length >= 30) {
+//             const nextFive = blocks.slice(i + 1, i + 6);
+//             const shortCount = nextFive.filter(b => b.split(/\s+/).length < 10).length;
+//             if (shortCount < 4) {
+//               startIndex = i;
+//               break;
+//             }
+//           }
+//         }
+
+//         let selectedBlocks = blocks.slice(startIndex);
+
+//         // Smart tail trimming
+//         let i = selectedBlocks.length - 1;
+//         while (i >= 0) {
+//           const currentWords = selectedBlocks[i].split(/\s+/).length;
+
+//           if (currentWords < 20) {
+//             selectedBlocks.pop();
+//           } else {
+//             const priorBlocks = selectedBlocks.slice(Math.max(0, i - 4), i);
+//             const longCount = priorBlocks.filter(b => b.split(/\s+/).length >= 10).length;
+
+//             if (longCount >= 2) {
+//               selectedBlocks = selectedBlocks.slice(0, i + 1);
+//               break;
+//             } else {
+//               selectedBlocks.pop();
+//             }
+//           }
+//           i--;
+//         }
+
+//         // Enforce 49,000 character limit
+//         const charLimit = 49000;
+//         let currentChars = 0;
+//         const finalBlocks = [];
+
+//         for (const block of selectedBlocks) {
+//           const formatted = `    ${block}\n\n`;
+//           if (currentChars + formatted.length > charLimit) break;
+//           finalBlocks.push(formatted);
+//           currentChars += formatted.length;
+//         }
+
+//         const pageText = finalBlocks.join('').trim();
+
+//         if (pageText.length < 10) {
+//           console.log(`⛔️ Skipped ${url}: too short`);
+//           return null;
+//         }
+
+//         console.log(`✅ Scraped ${url}`);
+//         return { url, text: pageText };
+//       } catch (err) {
+//         console.error(`❌ Error scraping ${url}:`, err.message);
+//         return null;
+//       }
+//     })
+//   );
+
+//   const dict = {};
+//   for (const result of results) {
+//     if (result.status === 'fulfilled' && result.value) {
+//       dict[result.value.url] = result.value.text;
+//     }
+//   }
+
+//   console.log(`📦 Successfully scraped ${Object.keys(dict).length} pages.`);
+//   return dict;
+// }
 
 // export async function generate(type, entry){
 //   console.log('hello')
@@ -188,19 +288,24 @@ export async function generateContent(userInput) {
 }
 
 export async function getPrompt(search, link, body){
-  return `Turn this link/evidence body into a cut card arguing ${search} in html format that i can directly display on a website
-          Begin with a tagline: a 1-sentence summary of the argument.
-          Include a citation: author(s), qualifications, title, publication, date, and URL. End the citation ONLY with //debatifyAI, not the other paragraphs.
-          Provide the body: multiple full paragraphs copied verbatim from the source.
-          Formatting in the body:
-          Never include partial paragraphs—only full, unedited ones.
-          there should be a paragraph break between each individual paragraph in the evidence
-          Highlight the text the debater should read aloud using bold and underline.
-          Underline important context not meant for reading.
-          Use bold + underline for mid-importance content.
-          Sourcing:
-          Do not fabricate or paraphrase anything.
-          Verify all quotes against the original.
-          Be extremely careful to avoid hallucinations. Every line in the cut card must be grounded in the source.
-          Use the following link and full text to help you: Link = ${link}, Body = ${body}`
+  return `Create a cut card in HTML format arguing: ${search}
+
+Use this source:  
+Link and body = 'Link = ${link}, Body = ${body}'
+
+Instructions:
+- Start with a tagline (short summary).
+- Add a citation (authors or no author if unavailable, credentials, title, source, date, URL), ending with //debatifyAI.
+- Include the full body: multiple full, unedited paragraphs.
+- Formatting rules:
+  - No partial paragraphs.
+  - Use paragraph breaks between paragraphs.
+  - Highlight, bold, and underline content meant to be read in round.
+  - Underline context not meant to be read.
+  - Use bold underline for mid-importance text.
+- Sourcing rules:
+  - Do not paraphrase or fabricate.
+  - Verify all quotes.
+  - Every sentence must be grounded in the source.
+`
 }
