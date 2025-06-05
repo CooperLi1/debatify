@@ -82,7 +82,7 @@ export async function scrape(sites) {
         const pageText = blocks.map((block) => `    ${block}`).join('\n\n');
 
         if (pageText.length > 60000 || pageText.length < 10) {
-          console.log(`⛔️ Skipped ${url}: content too long/short (${pageText.length} chars)`);
+          console.log(`Skipped ${url}: content too long/short (${pageText.length} chars)`);
           return null;
         }
 

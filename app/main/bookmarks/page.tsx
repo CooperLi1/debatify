@@ -104,7 +104,7 @@ export default function Saved() {
       <div className="w-full flex items-center gap-4 mb-8 justify-center">
         <input
           type="text"
-          className="w-[40%] simpleform"
+          className="w-[40%] simpleform hover:scale-102"
           placeholder="Search bookmarks..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

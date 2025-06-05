@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {getSubscription} from '@/utils/supabase/queries'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -27,6 +28,8 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  const subscription = await getSubscription(supabase)
+
   // Do not run code between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
@@ -48,6 +51,12 @@ export async function updateSession(request: NextRequest) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/account/login'
+    return NextResponse.redirect(url)
+  } else if(
+    subscription === null && request.nextUrl.pathname === '/main/ai'
+  ){
+    const url = request.nextUrl.clone()
+    url.pathname = '/main/pricing'
     return NextResponse.redirect(url)
   }
 
