@@ -12,9 +12,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Define dynamic titles based on the current route
   const getPageTitle = (path: string) => {
     const titles: { [key: string]: string } = {
-      '/dashboard': 'Search | Debatify',
+      '/main': 'Search | Debatify',
+      '/main/account': 'Account | Debatify',
+      '/main/bookmarks': 'Bookmarks | Debatify',
+      '/main/block': 'No Access | Debatify',
+      '/main/contact-us': 'Contact Us | Debatify',
+      '/main/pricing': 'Paid Plans | Debatify',
+      '/main/ai': 'AI Search | Debatify',
+      '/account/error': 'Error | Debatify',
+      '/account/login': 'Login | Debatify',
+      '/account/reset': 'Password | Debatify'
     }
-    return titles[path] || 'Debatify - Search for cut cards!'
+    return titles[path] || 'Debatify'
   }
 
   const [title, setTitle] = useState(getPageTitle(pathname))
@@ -57,7 +66,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Head>
             {/* Dynamic Title */}
             <title>{title}</title>
-            <meta name="description" content="Search for debate cut cards!" />
+            <meta name="description" content="Search for debate cut cards!" />\
+
+            <link rel="icon" href="/debatifyfavi.ico" />
+            <link rel="shortcut icon" href="/debatifyfavi16.png" />
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           </Head>
       <body className={`${manrope.className } antialiased bg-gray-50 dark:bg-gray-900`}>
           {children}

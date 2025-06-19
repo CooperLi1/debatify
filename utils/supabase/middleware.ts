@@ -56,7 +56,7 @@ export async function updateSession(request: NextRequest) {
     subscription === null && request.nextUrl.pathname === '/main/ai'
   ){
     const url = request.nextUrl.clone()
-    url.pathname = '/main/pricing'
+    url.pathname = '/main/block'
     return NextResponse.redirect(url)
   }
 

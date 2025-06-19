@@ -1,6 +1,7 @@
 'use client';
 import { Bars3Icon, XMarkIcon, BookmarkIcon } from "@heroicons/react/24/outline";
 import { FaBrain } from 'react-icons/fa';
+import { FiMail } from 'react-icons/fi';
 import { usePathname, useRouter } from "next/navigation";
 import {logout} from '@/app/account/logout/actions'
 import { createClient } from '@/utils/supabase/client'
@@ -303,6 +304,43 @@ function Bookmarks({ expanded }: { expanded: boolean }) {
   );
 };
 
+function Contact({ expanded }: { expanded: boolean }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isActive = pathname === "/main/contact-us";
+
+  return (
+    <li className="w-full group">
+      <button
+        onClick={() => router.push("/main/contact-us")}
+        className={`w-full flex items-center p-2 rounded-lg transition duration-200 cursor-pointer 
+          ${isActive
+            ? "bg-gray-200 dark:bg-gray-700 text-blue-600 dark:text-blue-400"
+            : "text-gray-500 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700"}`}
+      >
+        <FiMail
+          className={`shrink-0 w-6 h-6 transition-colors 
+            ${isActive 
+              ? "text-blue-600 dark:text-blue-400" 
+              : "text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"}`}
+        />
+
+        {expanded && (
+          <span
+            className={`ms-3 transition-colors
+              ${isActive 
+                ? "text-blue-600 dark:text-blue-400"
+                : "group-hover:text-gray-900 dark:group-hover:text-white"}`}
+          >
+            Contact&nbsp;Us
+          </span>
+        )}
+      </button>
+    </li>
+  );
+}
+
 async function getUser() {
   const supabase = createClient();
   const { data, error } = await supabase.auth.getUser();
@@ -350,6 +388,7 @@ const SideNav: React.FC<ChildComponentProps> = ({ sendDataToParent }) => {
 
       <ul className="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
       <Subscriptions expanded={isHovered} />
+      <Contact expanded={isHovered} />
       </ul>
     </div>
     
