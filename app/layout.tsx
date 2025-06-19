@@ -33,6 +33,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     document.title = getPageTitle(pathname)
   }, [pathname])
 
+  useEffect(() => {
+    if (!document.querySelector('link[rel="icon"]')) {
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.href = '/favicon.ico';
+      document.head.appendChild(link);
+    }
+  }, []);
+
   const [darkMode, setDarkMode] = useState<boolean>(false); // Dark mode state
 
   useEffect(() => {
@@ -64,12 +73,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
           <Head>
-            {/* Dynamic Title */}
             <title>{title}</title>
             <meta name="description" content="Search for debate cut cards!" />\
 
-            <link rel="icon" href="/debatifyfavi.ico" />
-            <link rel="shortcut icon" href="/debatifyfavi16.png" />
+            <link rel="icon" href="/favicon.ico" />
+            <link rel="shortcut icon" href="/favicon-16x16.png" />
             <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           </Head>
       <body className={`${manrope.className } antialiased bg-gray-50 dark:bg-gray-900`}>
