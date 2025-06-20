@@ -1,7 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/utils/supabase/server'
+import {createClient } from '@/utils/supabase/server'
+import { userExists } from '@/utils/supabase/queries'
 
 export async function login(_: any, formData: FormData) {
   const supabase = await createClient()
@@ -29,8 +30,12 @@ export async function signup(_: any, formData: FormData) {
   const email = formData.get('email')
   const password = formData.get('password')
 
+  const user = await userExists( email);
+
   if (typeof email !== 'string' || typeof password !== 'string') {
     return { error: 'Invalid input', success: false }
+  }else if(user){
+    return { error: 'Account already exists with this email', success: false }
   }
 
   const { error } = await supabase.auth.signUp({ email, password })

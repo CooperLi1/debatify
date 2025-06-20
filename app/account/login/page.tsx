@@ -18,7 +18,7 @@ export default function LoginPage() {
     }else if (signupState.error) {
         setErrorMessage(signupState.error)
         setSuccess(false)
-    } else setErrorMessage(null)
+    }else setErrorMessage(null)
 
     if (loginState.success) {
       window.location.href = '/main'
