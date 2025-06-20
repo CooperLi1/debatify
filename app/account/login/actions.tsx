@@ -35,7 +35,7 @@ export async function signup(_: any, formData: FormData) {
   if (typeof email !== 'string' || typeof password !== 'string') {
     return { error: 'Invalid input', success: false }
   }else if(user){
-    return { error: 'Account already exists with this email', success: false }
+    return { error: 'Account already exists with this email, try resetting password.', success: false }
   }
 
   const { error } = await supabase.auth.signUp({ email, password })
